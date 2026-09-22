@@ -23,6 +23,7 @@
 单纯 grep 上下文若干行则是另一个方向的错：会把下一个成员的注解算进来（假阳性）。
 成员块的分界要用「两格缩进 + 修饰符」的成员头来切，这正是下面 blocks 的切法。
 """
+import os
 import pathlib
 import re
 import shutil
@@ -31,12 +32,40 @@ import sys
 import tempfile
 import zipfile
 
-ROOT = pathlib.Path("/Users/augustanamo/WorkBuddy/杂志/MagFoldCast")
+# 工程根 = 本脚本所在目录的上一级。用相对推导而不是写死绝对路径，
+# 换台机器 / 别人 clone 下来也能直接跑。
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 GRADLE_CACHE = pathlib.Path.home() / ".gradle/caches/modules-2/files-2.1"
-JAVAP = pathlib.Path(
-    "/Users/augustanamo/Library/Java/JavaVirtualMachines/temurin-21.jdk"
-    "/Contents/Home/bin/javap"
-)
+
+
+def _find_javap() -> pathlib.Path:
+    """按 JAVA_HOME → PATH → 常见 JDK 安装位置 的顺序找 javap。
+
+    以前是写死本机 temurin-21 的绝对路径，别人 clone 下来第一句就报
+    「找不到 javap」。JDK 的位置属于环境，不该固化在脚本里。
+    """
+    java_home = os.environ.get("JAVA_HOME")
+    if java_home:
+        candidate = pathlib.Path(java_home) / "bin/javap"
+        if candidate.exists():
+            return candidate
+    found = shutil.which("javap")
+    if found:
+        return pathlib.Path(found)
+    for base in (
+        pathlib.Path.home() / "Library/Java/JavaVirtualMachines",
+        pathlib.Path("/Library/Java/JavaVirtualMachines"),
+        pathlib.Path("/usr/lib/jvm"),
+    ):
+        # macOS 的 JDK 多一层 Contents/Home，Linux 没有
+        for pattern in ("*/Contents/Home/bin/javap", "*/bin/javap"):
+            hit = sorted(base.glob(pattern))
+            if hit:
+                return hit[0]
+    return pathlib.Path("javap")
+
+
+JAVAP = _find_javap()
 
 UNSTABLE_MARKER = "androidx.media3.common.util.UnstableApi"
 

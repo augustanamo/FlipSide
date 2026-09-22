@@ -12,7 +12,9 @@ import pathlib
 import re
 import sys
 
-ROOT = pathlib.Path("/Users/augustanamo/WorkBuddy/杂志/MagFoldCast")
+# 工程根 = 本脚本所在目录的上一级。用相对推导而不是写死绝对路径，
+# 换台机器 / 别人 clone 下来也能直接跑。
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 # 名字 -> 出现该名字就必须存在对应 import。
 # 只放「几乎只可能是 Compose/AndroidX 提供的」符号，自己的类不在此列。
