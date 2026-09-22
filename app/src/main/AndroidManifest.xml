@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      仍然刻意不声明任何存储权限。
+      选素材走系统照片选择器（ActivityResultContracts.PickMultipleVisualMedia），
+      授予的是「逐条选中的这几个文件」的读权限，不是整个相册。
+      所以清单里不需要 READ_MEDIA_IMAGES / READ_MEDIA_VIDEO / READ_EXTERNAL_STORAGE。
+    -->
+
+    <!-- 开机自启：BOOT_COMPLETED 广播；MY_PACKAGE_REPLACED 让重装后也能回到展出状态 -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!--
+      保活服务（specialUse）。它不播放、不采集，只是「别把进程收走」。
+      不声明成 mediaPlayback 有两个硬理由：
+        1. 展出图片时同样需要活着，按 mediaPlayback 报类型属于滥用；
+        2. Android 15 起 BOOT_COMPLETED 被明确禁止拉起 mediaPlayback，specialUse 在允许名单内。
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!-- 保活服务的通知。没有它服务照样跑，只是通知栏看不到（也就没了「停止展出」那个出口） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+      外屏常亮用的屏幕锁（PowerManager.SCREEN_BRIGHT_WAKE_LOCK，见 serve/ScreenWake）。
+      以前这条权限也出现在打包结果里，但**不是我们申请的** —— 是 media3 的 ExoPlayer
+      顺手带进来的（它支持 setWakeMode，那个要 CPU 级别的锁），而我们从没启用过，
+      所以以前并没有任何唤醒行为。现在是真要用它，显式声明。
+    -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!--
+      「显示在其他应用上层」。这是本工程唯一一个需要用户手动去系统设置里授予的权限，
+      而且它跟展示功能本身无关 —— 纯粹是为了「开机自动展出」。
+      Android 10 起后台应用不能直接拉起界面，官方豁免清单里就有这一条。
+      不授权的话：展出、后台保持都正常，只有开机自启会被系统静默拦下。
+    -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:resizeableActivity="true"
+        android:theme="@style/Theme.MagFoldCast">
+
+        <!--
+          configChanges 保留 screenSize / smallestScreenSize / screenLayout：
+          折叠屏展开-合上时系统会重发配置变更，不声明则 Activity 被重建，
+          外屏会话和当前素材都会被重置。
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:resizeableActivity="true"
+            android:configChanges="orientation|screenLayout|screenSize|smallestScreenSize|keyboardHidden|density|uiMode|fontScale|navigation"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          保活服务：让进程在应用不可见时仍然活着，从而保住外屏会话与播放器。
+          它自己不画任何东西 —— 外屏画面挂在 Activity 上（API 只认 Activity）。
+        -->
+        <service
+            android:name=".serve.CastService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="keeps_window_area_presentation_and_media_playback_alive_while_the_app_is_not_visible" />
+        </service>
+
+        <!--
+          exported=false 是必须的：BOOT_COMPLETED 属系统广播，
+          非导出接收器照样能收到，而导出了反而让别的应用能随手唤起我们。
+        -->
+        <receiver
+            android:name=".serve.BootReceiver"
+            android:exported="false"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

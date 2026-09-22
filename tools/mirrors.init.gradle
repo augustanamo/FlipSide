@@ -1,0 +1,33 @@
+// MagFold 首次构建用的仓库镜像。通过 --init-script 显式传入，不修改工程、不写全局配置。
+//
+// 为什么需要：本机实测直连 repo1.maven.org 约 3 KB/s，而一个 Compose 工程首次
+// 构建要拉几百 MB 依赖。阿里云的 google / public / gradle-plugin 三个镜像覆盖
+// Google Maven、Maven Central 与 Gradle Plugin Portal，实测快一个数量级。
+//
+// 镜像排在前面，官方源保留在后面兜底 —— 万一镜像缺某个版本，Gradle 会自动
+// 落到下一个仓库，不会直接失败。
+
+def mirrorUrls = [
+    'https://maven.aliyun.com/repository/google',
+    'https://maven.aliyun.com/repository/public',
+    'https://maven.aliyun.com/repository/gradle-plugin',
+]
+
+gradle.settingsEvaluated { settings ->
+
+    // 插件解析：settings.gradle.kts 里给 google() 加了 content 过滤，
+    // 这里整体重排，让镜像优先。
+    def plugins = settings.pluginManagement.repositories
+    plugins.clear()
+    mirrorUrls.each { u -> plugins.maven { url = u } }
+    plugins.google()
+    plugins.mavenCentral()
+    plugins.gradlePluginPortal()
+
+    // 依赖解析：原本是 google() + mavenCentral()，同样镜像优先。
+    def deps = settings.dependencyResolutionManagement.repositories
+    deps.clear()
+    mirrorUrls.each { u -> deps.maven { url = u } }
+    deps.google()
+    deps.mavenCentral()
+}

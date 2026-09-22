@@ -1,0 +1,21 @@
+<!--
+  通知栏小图标：必须是不透明的单色形状，系统只取它的 alpha 通道。
+  形状就是「一块屏上嵌着一扇窗」—— 和桌面图标同一套语汇。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- 外框。evenOdd 让内圈变成镂空，于是这里是一个真正的窗框而不是一块实心板 -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M2,4h20a1,1 0 0 1 1,1v14a1,1 0 0 1 -1,1h-20a1,1 0 0 1 -1,-1v-14a1,1 0 0 1 1,-1zM4,7h16v10h-16z" />
+
+    <!-- 框里那块影像 -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7.5,10.5h9v6h-9z" />
+</vector>

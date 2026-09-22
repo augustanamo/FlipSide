@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      取自参考图：照片背景那层浅灰白(实测 #EFEFF1)做内屏画布，暖棕做强调色。
+      内屏是「米白纸 + 墨字」，外屏是「全屏影像 + 白字」。
+    -->
+    <color name="cast_canvas">#EFEFF1</color>
+    <color name="cast_ink">#1B1A1C</color>
+    <color name="cast_clay">#7A5A42</color>
+    <color name="ic_launcher_background">#EFEFF1</color>
+</resources>

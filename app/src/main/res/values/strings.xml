@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">FlipSide</string>
+
+    <!-- 保活服务的通知。措辞刻意说明「在干什么」，而不是一句「正在运行」 -->
+    <string name="channel_cast">外屏展出</string>
+    <string name="channel_cast_desc">展出期间保持进程存活，避免外屏画面被系统回收</string>
+    <string name="notif_title">FlipSide 正在外屏展出</string>
+    <string name="notif_text">打开控制台可换素材或收起外屏</string>
+    <string name="notif_stop">停止展出</string>
+</resources>

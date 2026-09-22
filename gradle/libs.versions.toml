@@ -1,0 +1,37 @@
+[versions]
+# 版本号继承 MagFold / MagFoldMusic 里已经真机验证过的一组（AGP 8.13.2 + compileSdk 36）。
+# 想升级时注意：compose-bom 2026.08.00 起 ui 跳 1.12.x，要求 minCompileSdk=37 + AGP>=9.1。
+agp = "8.13.2"
+kotlin = "2.4.20"
+
+coreKtx = "1.18.0"
+activityCompose = "1.13.0"
+lifecycle = "2.10.0"
+composeBom = "2026.06.01"
+window = "1.5.1"
+coroutines = "1.11.0"
+# Media3 1.11.1 的 minCompileSdk=36，正好匹配本工程 compileSdk=36，无需连带升级。
+# -ui 提供 PlayerView（带 resizeMode 的现成视频视图），比手搓 TextureView 变换矩阵省事。
+media3 = "1.11.1"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
+androidx-window = { group = "androidx.window", name = "window", version.ref = "window" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

@@ -1,0 +1,25 @@
+# Gradle / 构建产物
+.gradle/
+build/
+app/build/
+captures/
+
+# Kotlin 编译缓存（2.0 起会落在工程根下）
+.kotlin/
+
+# local.properties 里是本机的 SDK 绝对路径，每台机器都不一样，绝对不能提交
+local.properties
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# NDK
+.externalNativeBuild/
+.cxx/
+
+# macOS
+.DS_Store
