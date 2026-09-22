@@ -105,7 +105,10 @@ fun ConsoleScreen(
     modifier: Modifier = Modifier,
 ) {
     val current = entries.getOrNull(index)
-    val needsOverlay = bootStart && !overlayGranted
+    // 设置里有**两处**会因缺「显示在其他应用上层」而静默失效：开机自启，
+    // 以及后台保持里的「划掉任务自动拉回」（CastService.onTaskRemoved 也走 AutoStart）。
+    // 任一处开着且没授权就算待处理 —— 只盯开机自启的话，第二处就漏了。
+    val needsOverlay = !overlayGranted && (bootStart || keepAlive)
 
     Box(modifier = modifier.fillMaxSize().background(Palette.Paper)) {
         Column(

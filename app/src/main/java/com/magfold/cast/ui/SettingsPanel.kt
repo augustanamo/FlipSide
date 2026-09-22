@@ -221,9 +221,20 @@ fun SettingsOverlay(
 
                 Hairline(inset = true)
 
+                // 后台保持的**主体功能**（切走后外屏继续显示）只需要前台服务，不要任何权限；
+                // 但它还有第二条承诺 —— 「划掉最近任务后自动拉回来」（CastService.onTaskRemoved）
+                // —— 那要靠从后台拉起界面，就得有「显示在其他应用上层」。
+                // 这是**唯一**跟开机自启共用同一个权限的地方：不提示的话，用户划掉任务、
+                // 外屏黑掉，界面上找不出任何原因，正是本工程最不想要的静默失效。
                 SettingRow(
                     label = "后台保持",
-                    hint = "切到别的应用后让外屏继续显示。关掉后系统可能随时收走画面。",
+                    hint = if (keepAlive && !overlayGranted) {
+                        "划掉最近任务后要能自己拉回来，还差「显示在其他应用上层」，点这里授权。"
+                    } else {
+                        "切到别的应用后让外屏继续显示。关掉后系统可能随时收走画面。"
+                    },
+                    hintColor = if (keepAlive && !overlayGranted) Palette.Clay else Palette.InkFaint,
+                    hintAction = if (keepAlive && !overlayGranted) onGrantOverlay else null,
                 ) {
                     Segmented(
                         options = listOf("关", "开"),

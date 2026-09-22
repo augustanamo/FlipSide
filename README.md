@@ -9,7 +9,7 @@
 ```
 应用名     FlipSide
 包名       com.magfold.cast
-版本       0.5.0
+版本       0.5.1
 minSdk     29    （ImageDecoder / ContentResolver.loadThumbnail 从 29 起可用）
 compileSdk 36
 真机       Galaxy Z Fold 8（SM-F971B），已装过前两个工程
@@ -209,12 +209,18 @@ BOOT_COMPLETED ──▶ BootReceiver ──▶ 拉起 MainActivity ──▶ �
 
 Android 10 起后台应用不能直接 `startActivity`，官方豁免清单里有一条是
 **应用已获得 `SYSTEM_ALERT_WINDOW` 权限** —— 也就是设置里那句「显示在其他应用上层」。
-所以：
 
-- 没授权时：展出、后台保持全部正常，**只有开机自启会被系统静默拦下**；
-- 控制台会把「开机自启 已开但未授权」画成暖棕色待处理状态（设置入口那颗胶囊也会跟着变色），
-  并在设置里给一行可点的授权入口，不让它变成一个静默失效的开关；
-- 没授权时 `BootReceiver` 只记日志，不做任何假装成功的动作。
+**这个权限一共只被两条路径用到**，都收在 `AutoStart.launchConsole` 里：
+
+| 路径 | 触发者 | 没授权时的后果 |
+| --- | --- | --- |
+| 开机自启 | `BootReceiver` | 开机不会自动展出 |
+| 划掉任务自动拉回 | `CastService.onTaskRemoved` | 划掉最近任务后外屏黑掉，而且没人把它拉回来 |
+
+所以它**不是**「只影响开机自启」：展出本身、以及后台保持里的外屏常显，全都正常
+（那些只靠前台服务，一条权限都不要）；被拦下的只有上面这两条「从后台把界面拉起来」的路径。
+两条都在控制台里画成暖棕色待处理状态、各给一行可点的授权入口，
+不让它们变成静默失效的开关；没授权时 `AutoStart` 只记日志，不做任何假装成功的动作。
 
 开机自启还有第二个条件：**上次退出时正在展出**。否则开机弹一个空控制台很唐突。
 
@@ -222,6 +228,8 @@ Android 10 起后台应用不能直接 `startActivity`，官方豁免清单里�
 
 `CastService.onTaskRemoved` 在「正在展出 + 后台保持」时会把界面拉回来重建展出。
 这是刻意行为：挂在墙上的展窗不该因为顺手清了最近任务就黑掉。
+**它跟开机自启共用同一个前提** —— 拉界面这一步同样要「显示在其他应用上层」，
+所以「后台保持」开着而没授权时，那条 hint 也会变成可点的授权入口。
 
 因此必须留一个不会被拉回来的停止方式 —— 通知栏的**「停止展出」**就是它
 （会同时关掉投屏态并落盘，下次开机不会再自己回来）。不想要「划掉就回来」
@@ -306,7 +314,7 @@ adb logcat -c && adb logcat | grep -E "WindowAreaBridge|CoverComposeView|AppRoot
 
 | 权限 | 用途 |
 | --- | --- |
-| `SYSTEM_ALERT_WINDOW` | **仅为「开机自启」**（后台拉起界面的豁免条件） |
+| `SYSTEM_ALERT_WINDOW` | 从后台拉起界面（开机自启、划掉任务拉回）的唯一豁免条件。**与展示能力无关** |
 | `RECEIVE_BOOT_COMPLETED` | 开机广播 |
 | `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_SPECIAL_USE` | 保活服务 |
 | `WAKE_LOCK` | 外屏常亮（`SCREEN_BRIGHT_WAKE_LOCK`）。普通权限，装完即有 |

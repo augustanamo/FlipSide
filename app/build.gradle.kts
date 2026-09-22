@@ -16,8 +16,8 @@ android {
         // 少一层兼容分支。双屏幕模式需要 34，在代码里运行时判断。
         minSdk = 29
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.5.0"
+        versionCode = 6
+        versionName = "0.5.1"
     }
 
     buildTypes {
